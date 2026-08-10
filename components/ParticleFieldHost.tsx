@@ -3,34 +3,39 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { hasFinePointer, prefersReducedMotion } from "@/lib/motion";
+import { StaticParticleFallback } from "./StaticParticleFallback";
 
 const ParticleField = dynamic(
   () => import("./ParticleField").then((mod) => mod.ParticleField),
   { ssr: false },
 );
 
+type Mode = "pending" | "live" | "static";
+
 type Props = {
   fullPage?: boolean;
 };
 
 /**
- * Lazy-loads the WebGL field after first paint, and only on fine-pointer
- * devices without reduced-motion. Pauses on tab hide and when the page
- * sentinel leaves the viewport.
+ * Live WebGL on fine-pointer + motion-OK clients only.
+ * Coarse pointer / reduced-motion get the build-time PNG and never import three.
  */
 export function ParticleFieldHost({ fullPage = true }: Props) {
-  const [enabled, setEnabled] = useState(false);
+  const [mode, setMode] = useState<Mode>("pending");
   const [paused, setPaused] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const hiddenRef = useRef(false);
   const offscreenRef = useRef(false);
 
   useEffect(() => {
-    if (!hasFinePointer() || prefersReducedMotion()) return;
+    if (!hasFinePointer() || prefersReducedMotion()) {
+      setMode("static");
+      return;
+    }
 
     let cancelled = false;
     const enable = () => {
-      if (!cancelled) setEnabled(true);
+      if (!cancelled) setMode("live");
     };
 
     if (typeof window.requestIdleCallback === "function") {
@@ -49,7 +54,7 @@ export function ParticleFieldHost({ fullPage = true }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (mode !== "live") return;
 
     const syncPaused = () => {
       setPaused(hiddenRef.current || offscreenRef.current);
@@ -80,7 +85,7 @@ export function ParticleFieldHost({ fullPage = true }: Props) {
       document.removeEventListener("visibilitychange", onVisibility);
       observer?.disconnect();
     };
-  }, [enabled]);
+  }, [mode]);
 
   return (
     <>
@@ -96,7 +101,11 @@ export function ParticleFieldHost({ fullPage = true }: Props) {
           zIndex: -1,
         }}
       />
-      {enabled ? <ParticleField fullPage={fullPage} paused={paused} /> : null}
+      {/* PNG for coarse / reduced-motion, and as a brief paint before live WebGL */}
+      {mode !== "live" ? <StaticParticleFallback /> : null}
+      {mode === "live" ? (
+        <ParticleField fullPage={fullPage} paused={paused} />
+      ) : null}
     </>
   );
 }
