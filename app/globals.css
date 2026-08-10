@@ -145,26 +145,6 @@ ul {
   color: var(--text-dim);
 }
 
-.work-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.work-row {
-  border-top: 1px solid var(--rule);
-}
-
-.work-row:last-child {
-  border-bottom: 1px solid var(--rule);
-}
-
-.work-name {
-  padding: 22px 0;
-  font-size: 26px;
-  font-weight: 500;
-  line-height: 1.25;
-}
-
 .experience-list {
   display: flex;
   flex-direction: column;
@@ -212,7 +192,6 @@ ul {
     font-size: 34px;
   }
 
-  .work-name,
   .experience-company {
     font-size: 22px;
   }

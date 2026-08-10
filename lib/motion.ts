@@ -1,0 +1,18 @@
+export function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+export function hasFinePointer(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(pointer: fine)").matches;
+}
+
+export const timings = {
+  previewMs: 150,
+  flipMs: 400,
+  staggerMs: 60,
+  underlineMs: 180,
+  scrambleMs: 150,
+  magneticMaxPx: 6,
+} as const;
