@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { getDissolveBurstPositions } from "@/lib/fieldPulseBridge";
 import { particleFieldConfig as cfg } from "@/lib/particleField";
 import styles from "./ParticleField.module.css";
 
@@ -10,6 +11,10 @@ type Props = {
   /** External pause signal (visibility / intersection). */
   paused?: boolean;
 };
+
+const PULSE_RADIUS = 40;
+const PULSE_BOOST = 0.15;
+const PULSE_DECAY = 0.94;
 
 export function ParticleField({ fullPage = false, paused = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -65,9 +70,12 @@ export function ParticleField({ fullPage = false, paused = false }: Props) {
       // Resting positions live in `targets`; geometry starts clustered at origin.
       const targets = new Float32Array(cfg.count * 3);
       const positions = new Float32Array(cfg.count * 3);
+      const baseColors = new Float32Array(cfg.count * 3);
       const colors = new Float32Array(cfg.count * 3);
+      const pulse = new Float32Array(cfg.count);
       const accent = new THREE.Color(cfg.accent);
       const neutral = new THREE.Color(cfg.neutral);
+      const scratch = new THREE.Vector3();
 
       for (let i = 0; i < cfg.count; i++) {
         const i3 = i * 3;
@@ -75,6 +83,9 @@ export function ParticleField({ fullPage = false, paused = false }: Props) {
         targets[i3 + 1] = (Math.random() - 0.5) * 7;
         targets[i3 + 2] = (Math.random() - 0.5) * 8;
         const color = Math.random() < cfg.accentRatio ? accent : neutral;
+        baseColors[i3] = color.r;
+        baseColors[i3 + 1] = color.g;
+        baseColors[i3 + 2] = color.b;
         colors[i3] = color.r;
         colors[i3 + 1] = color.g;
         colors[i3 + 2] = color.b;
@@ -125,7 +136,8 @@ export function ParticleField({ fullPage = false, paused = false }: Props) {
           !scene ||
           !camera ||
           !points ||
-          !geometry
+          !geometry ||
+          !material
         ) {
           return;
         }
@@ -151,6 +163,67 @@ export function ParticleField({ fullPage = false, paused = false }: Props) {
             introDone = true;
           }
         }
+
+        // Field absorption cue: brighten ambient points near dissolve-burst particles.
+        const burst = getDissolveBurstPositions();
+        let colorsDirty = false;
+        if (burst && burst.length > 0) {
+          const w = window.innerWidth || 1;
+          const h = window.innerHeight || 1;
+          points.updateMatrixWorld(true);
+          const r2 = PULSE_RADIUS * PULSE_RADIUS;
+
+          for (let i = 0; i < cfg.count; i++) {
+            const i3 = i * 3;
+            scratch.set(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+            scratch.applyMatrix4(points.matrixWorld);
+            scratch.project(camera);
+
+            const sx = (scratch.x * 0.5 + 0.5) * w;
+            const sy = (-scratch.y * 0.5 + 0.5) * h;
+
+            for (let b = 0; b < burst.length; b++) {
+              const dx = sx - burst[b]!.x;
+              const dy = sy - burst[b]!.y;
+              if (dx * dx + dy * dy <= r2) {
+                pulse[i] = Math.min(1, pulse[i] + PULSE_BOOST);
+                break;
+              }
+            }
+          }
+        }
+
+        for (let i = 0; i < cfg.count; i++) {
+          if (pulse[i] <= 0.001) {
+            if (pulse[i] !== 0) {
+              pulse[i] = 0;
+              const i3 = i * 3;
+              colors[i3] = baseColors[i3];
+              colors[i3 + 1] = baseColors[i3 + 1];
+              colors[i3 + 2] = baseColors[i3 + 2];
+              colorsDirty = true;
+            }
+            continue;
+          }
+          pulse[i] *= PULSE_DECAY;
+          const i3 = i * 3;
+          const p = pulse[i];
+          colors[i3] = baseColors[i3] + (1 - baseColors[i3]) * p * 0.55;
+          colors[i3 + 1] = baseColors[i3 + 1] + (1 - baseColors[i3 + 1]) * p * 0.55;
+          colors[i3 + 2] = baseColors[i3 + 2] + (1 - baseColors[i3 + 2]) * p * 0.55;
+          colorsDirty = true;
+        }
+
+        if (colorsDirty) {
+          geometry.attributes.color.needsUpdate = true;
+        }
+
+        // Slight opacity lift while any pulse is hot.
+        let maxPulse = 0;
+        for (let i = 0; i < cfg.count; i++) {
+          if (pulse[i] > maxPulse) maxPulse = pulse[i];
+        }
+        material.opacity = cfg.opacity + maxPulse * 0.15;
 
         renderer.render(scene, camera);
       };

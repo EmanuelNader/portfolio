@@ -11,9 +11,12 @@ export function hasFinePointer(): boolean {
 export const timings = {
   previewMs: 150,
   flipMs: 400,
-  /** CRT-style close: flatten to a line, then pinch left/right to center. */
-  tvOffFlattenMs: 160,
-  tvOffPinchMs: 220,
+  /** Panel content fade while dissolve burst takes over. */
+  dissolveFadeMs: 160,
+  /** Delay before work list starts fading back in. */
+  dissolveListDelayMs: 120,
+  /** Work list fade-in duration after delay (~400ms total from close). */
+  dissolveListFadeMs: 280,
   staggerMs: 60,
   underlineMs: 180,
   scrambleMs: 150,

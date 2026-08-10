@@ -8,6 +8,10 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  runDissolveBurst,
+  spawnDissolveParticles,
+} from "@/lib/dissolveBurst";
 import type { Project } from "@/lib/projects";
 import { hasFinePointer, prefersReducedMotion, timings } from "@/lib/motion";
 import { StaggerIn } from "./StaggerIn";
@@ -45,10 +49,13 @@ export function WorkList({ projects, activeSlug = null }: Props) {
   const [openSlug, setOpenSlug] = useState<string | null>(activeSlug);
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [finePointer, setFinePointer] = useState(false);
+  const [listRevealing, setListRevealing] = useState(false);
 
   const previewRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const dissolveCanvasRef = useRef<HTMLCanvasElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const firstRectRef = useRef<DOMRect | null>(null);
   const animatingRef = useRef(false);
   const targetRef = useRef<HTMLAnchorElement | null>(null);
@@ -66,7 +73,7 @@ export function WorkList({ projects, activeSlug = null }: Props) {
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
-  // Keep overlay in sync with the URL (back/forward). Skip while FLIP is running
+  // Keep overlay in sync with the URL (back/forward). Skip while FLIP/dissolve is running
   // so closing does not unmount the panel mid-animation.
   useEffect(() => {
     if (animatingRef.current) return;
@@ -132,6 +139,7 @@ export function WorkList({ projects, activeSlug = null }: Props) {
 
   const playFlipOpen = useCallback(async (slug: string) => {
     const reduce = prefersReducedMotion();
+    setListRevealing(false);
     setOpenSlug(slug);
     hidePreview();
     router.push(`/work/${slug}`, { scroll: false });
@@ -196,6 +204,7 @@ export function WorkList({ projects, activeSlug = null }: Props) {
         overlayRef.current.style.transition = "";
         overlayRef.current.style.opacity = "";
       }
+      setListRevealing(false);
       setOpenSlug(null);
       animatingRef.current = false;
       router.push("/", { scroll: false });
@@ -206,35 +215,29 @@ export function WorkList({ projects, activeSlug = null }: Props) {
       return;
     }
 
-    // TV shut-off: flatten to a horizontal line, then pinch left/right into the center.
     animatingRef.current = true;
-    const flatten = timings.tvOffFlattenMs;
-    const pinch = timings.tvOffPinchMs;
 
-    panel.style.transformOrigin = "center center";
-    panel.style.transition = `transform ${flatten}ms cubic-bezier(0.55, 0.06, 0.68, 0.19)`;
-    panel.style.transform = "scale(1, 0.04)";
+    const particles = spawnDissolveParticles(panel);
+    const canvas = dissolveCanvasRef.current;
+
+    // Content fades while the burst takes over.
+    panel.style.transition = `opacity ${timings.dissolveFadeMs}ms ease-out`;
+    panel.style.opacity = "0";
     if (overlayRef.current) {
-      overlayRef.current.style.transition = `opacity ${flatten + pinch}ms ease-out`;
+      overlayRef.current.style.transition = `opacity ${timings.dissolveFadeMs}ms ease-out`;
       overlayRef.current.style.opacity = "0";
     }
 
+    // Work list starts arriving while particles are mid-flight.
     window.setTimeout(() => {
-      if (!panelRef.current) {
-        finishClose();
-        return;
-      }
-      panel.style.transition = [
-        `transform ${pinch}ms cubic-bezier(0.55, 0.06, 0.68, 0.19)`,
-        `opacity ${pinch}ms ease-in`,
-        `filter ${pinch}ms ease-in`,
-      ].join(", ");
-      panel.style.transform = "scale(0, 0.04)";
-      panel.style.opacity = "0";
-      panel.style.filter = "brightness(1.8)";
-    }, flatten);
+      setListRevealing(true);
+    }, timings.dissolveListDelayMs);
 
-    window.setTimeout(finishClose, flatten + pinch + 20);
+    if (canvas) {
+      await runDissolveBurst(canvas, particles);
+    }
+
+    finishClose();
   }, [router]);
 
   const onRowClick = (project: Project, event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -260,9 +263,17 @@ export function WorkList({ projects, activeSlug = null }: Props) {
     coldOpenRef.current = false;
   }, [openSlug]);
 
+  const listClassName = [
+    styles.list,
+    openSlug && !listRevealing ? styles.listHidden : "",
+    listRevealing ? styles.listReveal : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <>
-      <ul className={styles.list}>
+      <ul ref={listRef} className={listClassName}>
         {projects.map((project, index) => (
           <li key={project.slug} className={styles.row}>
             <StaggerIn delayMs={index * 60}>
@@ -305,6 +316,11 @@ export function WorkList({ projects, activeSlug = null }: Props) {
               onClose={() => void closeBreakdown()}
             />
           </div>
+          <canvas
+            ref={dissolveCanvasRef}
+            className={styles.dissolveCanvas}
+            aria-hidden="true"
+          />
         </div>
       ) : null}
     </>

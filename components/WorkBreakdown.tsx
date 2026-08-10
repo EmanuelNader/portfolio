@@ -24,7 +24,11 @@ export function WorkBreakdown({ project, onClose, panelRef }: Props) {
 
       <div className={styles.thumb} data-slug={project.slug} aria-hidden="true" />
 
-      <h3 id={`work-${project.slug}-title`} className={styles.title}>
+      <h3
+        id={`work-${project.slug}-title`}
+        className={styles.title}
+        data-dissolve="title"
+      >
         {project.name}
       </h3>
 
@@ -48,14 +52,16 @@ export function WorkBreakdown({ project, onClose, panelRef }: Props) {
         </div>
         <div>
           <dt>Description</dt>
-          <dd className={styles.description}>{project.description}</dd>
+          <dd className={styles.description} data-dissolve="description">
+            {project.description}
+          </dd>
         </div>
         <div>
           <dt>Result</dt>
           <dd>
             {project.metric ? (
               <p className={styles.metric} data-metric>
-                <span className={styles.metricValue}>
+                <span className={styles.metricValue} data-dissolve="result">
                   {project.metric.prefix ?? ""}
                   <CountUp value={project.metric.value} />
                   {project.metric.suffix ?? ""}
@@ -63,7 +69,7 @@ export function WorkBreakdown({ project, onClose, panelRef }: Props) {
                 <span className={styles.metricLabel}>{project.metric.label}</span>
               </p>
             ) : (
-              project.result
+              <span data-dissolve="result">{project.result}</span>
             )}
           </dd>
         </div>
