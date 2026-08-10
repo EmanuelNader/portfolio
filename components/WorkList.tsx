@@ -10,6 +10,7 @@ import {
 } from "react";
 import type { Project } from "@/lib/projects";
 import { hasFinePointer, prefersReducedMotion, timings } from "@/lib/motion";
+import { StaggerIn } from "./StaggerIn";
 import { WorkBreakdown } from "./WorkBreakdown";
 import { WorkPreviewCard } from "./WorkPreviewCard";
 import styles from "./WorkList.module.css";
@@ -233,18 +234,20 @@ export function WorkList({ projects, initialSlug = null }: Props) {
   return (
     <>
       <ul className={styles.list}>
-        {projects.map((project) => (
+        {projects.map((project, index) => (
           <li key={project.slug} className={styles.row}>
-            <a
-              href={`/work/${project.slug}`}
-              className={styles.link}
-              onMouseEnter={(event) => onRowEnter(project, event)}
-              onMouseMove={onRowMove}
-              onMouseLeave={onRowLeave}
-              onClick={(event) => onRowClick(project, event)}
-            >
-              <h3 className={styles.name}>{project.name}</h3>
-            </a>
+            <StaggerIn delayMs={index * 60}>
+              <a
+                href={`/work/${project.slug}`}
+                className={styles.link}
+                onMouseEnter={(event) => onRowEnter(project, event)}
+                onMouseMove={onRowMove}
+                onMouseLeave={onRowLeave}
+                onClick={(event) => onRowClick(project, event)}
+              >
+                <h3 className={styles.name}>{project.name}</h3>
+              </a>
+            </StaggerIn>
           </li>
         ))}
       </ul>

@@ -2,6 +2,7 @@
 
 import type { Ref } from "react";
 import type { Project } from "@/lib/projects";
+import { CountUp } from "./CountUp";
 import styles from "./WorkBreakdown.module.css";
 
 type Props = {
@@ -46,9 +47,7 @@ export function WorkBreakdown({ project, onClose, panelRef }: Props) {
         <p className={styles.metric} data-metric>
           <span className={styles.metricValue}>
             {project.metric.prefix ?? ""}
-            <span data-count-to={project.metric.value}>
-              {project.metric.value}
-            </span>
+            <CountUp value={project.metric.value} />
             {project.metric.suffix ?? ""}
           </span>
           <span className={styles.metricLabel}>{project.metric.label}</span>
