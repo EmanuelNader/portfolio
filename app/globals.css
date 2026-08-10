@@ -177,22 +177,32 @@ ul {
 .experience-logo-wrap {
   display: grid;
   place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.experience-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Black Tesla PNG → white on the dark page (no tile behind it). */
+.experience-logo[alt="Tesla"] {
+  filter: invert(1);
+}
+
+/* HP keeps the light circular tile so the black mark reads cleanly. */
+.experience-logo-wrap:has(.experience-logo[alt="HP"]) {
   width: 36px;
   height: 36px;
-  flex-shrink: 0;
   border-radius: 50%;
   background: #ebeae6;
   overflow: hidden;
 }
 
-.experience-logo {
-  width: 72%;
-  height: 72%;
-  object-fit: contain;
-  display: block;
-}
-
-/* HP mark is already a filled circle — let it fill the tile (no inner square). */
 .experience-logo[alt="HP"] {
   width: 100%;
   height: 100%;
@@ -227,7 +237,7 @@ ul {
   font-size: 32px;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: var(--accent);
+  color: var(--text);
   line-height: 1.2;
 }
 
