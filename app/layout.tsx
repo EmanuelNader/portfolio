@@ -4,7 +4,7 @@ import { site } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: `${site.name} — Portfolio`,
+  title: "emanuel nader",
   description: site.tagline,
 };
 
