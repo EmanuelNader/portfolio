@@ -58,6 +58,8 @@ export function WorkList({ projects, activeSlug = null }: Props) {
   const listRef = useRef<HTMLUListElement>(null);
   const firstRectRef = useRef<DOMRect | null>(null);
   const animatingRef = useRef(false);
+  /** Block hover preview after close until the cursor moves (overlay unmount would otherwise re-trigger it). */
+  const suppressHoverRef = useRef(false);
   const targetRef = useRef<HTMLAnchorElement | null>(null);
   const cursorRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef<number | null>(null);
@@ -71,6 +73,16 @@ export function WorkList({ projects, activeSlug = null }: Props) {
     const onChange = () => setFinePointer(mq.matches);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  // After close, ignore the synthetic mouseenter from overlay unmount until the cursor actually moves.
+  useEffect(() => {
+    const unlock = () => {
+      if (!suppressHoverRef.current) return;
+      suppressHoverRef.current = false;
+    };
+    window.addEventListener("pointermove", unlock, { passive: true });
+    return () => window.removeEventListener("pointermove", unlock);
   }, []);
 
   // Keep overlay in sync with the URL (back/forward). Skip while FLIP/dissolve is running
@@ -113,7 +125,14 @@ export function WorkList({ projects, activeSlug = null }: Props) {
   }, []);
 
   const onRowEnter = (project: Project, event: React.MouseEvent) => {
-    if (!finePointer || openSlug || animatingRef.current) return;
+    if (
+      !finePointer ||
+      openSlug ||
+      animatingRef.current ||
+      suppressHoverRef.current
+    ) {
+      return;
+    }
     cursorRef.current = { x: event.clientX, y: event.clientY };
     const pos = clampPreview(event.clientX, event.clientY);
     setPreview({
@@ -125,7 +144,12 @@ export function WorkList({ projects, activeSlug = null }: Props) {
   };
 
   const onRowMove = (event: React.MouseEvent) => {
-    if (!finePointer || !preview?.visible || openSlug) return;
+    if (suppressHoverRef.current) {
+      suppressHoverRef.current = false;
+    }
+    if (!finePointer || !preview?.visible || openSlug || animatingRef.current) {
+      return;
+    }
     cursorRef.current = { x: event.clientX, y: event.clientY };
     if (rafRef.current == null) {
       rafRef.current = window.requestAnimationFrame(updatePreviewPosition);
@@ -204,6 +228,10 @@ export function WorkList({ projects, activeSlug = null }: Props) {
         overlayRef.current.style.transition = "";
         overlayRef.current.style.opacity = "";
       }
+      // Clear preview and suppress hover until the next real pointer move —
+      // otherwise unmounting the overlay fires mouseenter on the row under the cursor.
+      setPreview(null);
+      suppressHoverRef.current = true;
       setListRevealing(false);
       setOpenSlug(null);
       animatingRef.current = false;
