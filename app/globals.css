@@ -33,8 +33,9 @@
 :root {
   --bg: #0d0d0f;
   --surface: #16171a;
-  --text: #ebeae6;
-  --text-dim: #8b8b87;
+  /* Slightly brighter primary text so copy wins against the full-page field */
+  --text: #f2f1ec;
+  --text-dim: #9a9a95;
   --rule: #232427;
   --accent: #b8a6ff;
 
@@ -91,12 +92,18 @@ ul {
   list-style: none;
 }
 
+.site-shell {
+  position: relative;
+  min-height: 100%;
+}
+
 .page {
   position: relative;
   z-index: 1;
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 96px 24px 160px;
+  text-shadow: 0 1px 12px color-mix(in srgb, var(--bg) 55%, transparent);
 }
 
 .section + .section {

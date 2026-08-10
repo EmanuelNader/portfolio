@@ -12,50 +12,51 @@ type Props = {
 
 export function HomePage({ initialWorkSlug = null }: Props) {
   return (
-    <main className="page">
+    <div className="site-shell">
+      <ParticleFieldHost fullPage />
+      <main className="page">
       <section className="section hero" aria-label="Introduction">
-        <ParticleFieldHost />
         <div className="hero-content">
-        <StaggerIn immediate delayMs={0}>
-          <h1 className="hero-name">{site.name}</h1>
-        </StaggerIn>
-        <StaggerIn immediate delayMs={60}>
-          <p className="meta">{site.metaLine}</p>
-        </StaggerIn>
-        <StaggerIn immediate delayMs={120}>
-          <p className="hero-body">{site.tagline}</p>
-        </StaggerIn>
-        <StaggerIn immediate delayMs={180}>
-          <p className="hero-links">
-            <ScrambleLink
-              href={site.links.github}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub
-            </ScrambleLink>
-            <span className="hero-sep" aria-hidden="true">
-              ·
-            </span>
-            <ScrambleLink
-              href={site.links.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              LinkedIn
-            </ScrambleLink>
-            <span className="hero-sep" aria-hidden="true">
-              ·
-            </span>
-            <ScrambleLink
-              href={site.links.resume}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Résumé
-            </ScrambleLink>
-          </p>
-        </StaggerIn>
+          <StaggerIn immediate delayMs={0}>
+            <h1 className="hero-name">{site.name}</h1>
+          </StaggerIn>
+          <StaggerIn immediate delayMs={60}>
+            <p className="meta">{site.metaLine}</p>
+          </StaggerIn>
+          <StaggerIn immediate delayMs={120}>
+            <p className="hero-body">{site.tagline}</p>
+          </StaggerIn>
+          <StaggerIn immediate delayMs={180}>
+            <p className="hero-links">
+              <ScrambleLink
+                href={site.links.github}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
+              </ScrambleLink>
+              <span className="hero-sep" aria-hidden="true">
+                ·
+              </span>
+              <ScrambleLink
+                href={site.links.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                LinkedIn
+              </ScrambleLink>
+              <span className="hero-sep" aria-hidden="true">
+                ·
+              </span>
+              <ScrambleLink
+                href={site.links.resume}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Résumé
+              </ScrambleLink>
+            </p>
+          </StaggerIn>
         </div>
       </section>
 
@@ -104,6 +105,7 @@ export function HomePage({ initialWorkSlug = null }: Props) {
           </a>
         </StaggerIn>
       </section>
-    </main>
+      </main>
+    </div>
   );
 }
