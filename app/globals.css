@@ -168,6 +168,37 @@ ul {
   gap: var(--entry-gap);
 }
 
+.experience-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.experience-logo-wrap {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #ebeae6;
+  overflow: hidden;
+}
+
+.experience-logo {
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  display: block;
+}
+
+/* HP mark is already a filled circle — let it fill the tile (no inner square). */
+.experience-logo[alt="HP"] {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .experience-company {
   font-size: 26px;
   font-weight: 500;

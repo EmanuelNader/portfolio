@@ -4,6 +4,9 @@ export type Experience = {
   location: string;
   dates: string;
   lines: string[];
+  /** Public path under /public, e.g. /logos/tesla.svg */
+  logoSrc?: string;
+  logoAlt?: string;
 };
 
 export const experience: Experience[] = [
@@ -12,6 +15,8 @@ export const experience: Experience[] = [
     role: "Technical Program Manager Intern — Chassis Controls",
     location: "Palo Alto, CA",
     dates: "Jun 2026 – Present",
+    logoSrc: "/logos/tesla.png",
+    logoAlt: "Tesla",
     lines: [
       "Rebuilt an internal fleet-planning console in React/Vite/Tailwind on Flask/SQLite for 7 Vehicle Software teams, cutting manual cross-checking by 75%.",
       "Designed a weighted release-scoring algorithm ranking 350+ vehicles 0–100 across five metrics with scarcity-protection caps.",
@@ -23,8 +28,11 @@ export const experience: Experience[] = [
     role: "Software Engineering Extern (Technical Analyst)",
     location: "Remote",
     dates: "Feb 2026 – Apr 2026",
+    logoSrc: "/logos/hp.png",
+    logoAlt: "HP",
     lines: [
-      "Cut due diligence cycle time by 40% (15+ hrs/week) with Python scrapers over 10,000+ market records and an LLM research tool that halved competitive-brief write time.",
+      "Cut due diligence cycle time by 40%, saving 15+ hours/week, by building Python scrapers that aggregated and cleaned 10,000+ market records into structured investment reports.",
+      "Halved technical risk analysis time (4 hrs to under 2 hrs/report) by building an LLM-powered research tool using NLP pipelines to auto-generate structured competitive landscape briefs.",
     ],
   },
 ];

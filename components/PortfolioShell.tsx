@@ -96,7 +96,21 @@ export function PortfolioShell({ children }: Props) {
             {experience.map((job, index) => (
               <li key={job.company} className="experience-item">
                 <StaggerIn delayMs={index * 60}>
-                  <h3 className="experience-company">{job.company}</h3>
+                  <div className="experience-heading">
+                    {job.logoSrc ? (
+                      <span className="experience-logo-wrap">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          className="experience-logo"
+                          src={job.logoSrc}
+                          alt={job.logoAlt ?? ""}
+                          width={22}
+                          height={22}
+                        />
+                      </span>
+                    ) : null}
+                    <h3 className="experience-company">{job.company}</h3>
+                  </div>
                   <p className="meta experience-meta">
                     {job.role} · {job.location} · {job.dates}
                   </p>
