@@ -2,12 +2,13 @@
   display: flex;
   flex-direction: column;
   list-style: none;
-  transition: opacity 280ms ease-out;
+  transition: opacity 220ms ease-out;
 }
 
 .listHidden {
   opacity: 0;
   pointer-events: none;
+  transition: opacity 220ms ease-out;
 }
 
 .listReveal {

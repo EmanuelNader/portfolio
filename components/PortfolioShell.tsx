@@ -72,6 +72,12 @@ export function PortfolioShell({ children }: Props) {
                 >
                   Résumé
                 </ScrambleLink>
+                <span className="hero-sep" aria-hidden="true">
+                  ·
+                </span>
+                <ScrambleLink href={`mailto:${site.email}`}>
+                  {site.email}
+                </ScrambleLink>
               </p>
             </StaggerIn>
           </div>
@@ -125,17 +131,6 @@ export function PortfolioShell({ children }: Props) {
           </ul>
         </section>
 
-        <section className="section contact" aria-labelledby="contact-heading">
-          <StaggerIn>
-            <h2 id="contact-heading" className="section-label">
-              Contact
-            </h2>
-            <p className="contact-lead">Open to interesting work — say hello.</p>
-            <a className="contact-email" href={`mailto:${site.email}`}>
-              {site.email}
-            </a>
-          </StaggerIn>
-        </section>
       </main>
       {/* Route segments stay for URL/metadata; UI is owned by this shell. */}
       <div hidden aria-hidden="true">

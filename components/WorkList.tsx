@@ -9,7 +9,11 @@ import {
   useState,
 } from "react";
 import {
+  revealDissolveElement,
+  runAssembleBurst,
   runDissolveBurst,
+  setDissolveElementsVisible,
+  spawnAssembleParticles,
   spawnDissolveParticles,
 } from "@/lib/dissolveBurst";
 import type { Project } from "@/lib/projects";
@@ -56,14 +60,14 @@ export function WorkList({ projects, activeSlug = null }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const dissolveCanvasRef = useRef<HTMLCanvasElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const firstRectRef = useRef<DOMRect | null>(null);
   const animatingRef = useRef(false);
   /** Block hover preview after close until the cursor moves (overlay unmount would otherwise re-trigger it). */
   const suppressHoverRef = useRef(false);
-  const targetRef = useRef<HTMLAnchorElement | null>(null);
   const cursorRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef<number | null>(null);
   const coldOpenRef = useRef(Boolean(activeSlug));
+  /** True while waiting for layout so assemble can measure invisible targets. */
+  const assemblePendingRef = useRef(false);
 
   const openProject = projects.find((p) => p.slug === openSlug) ?? null;
 
@@ -85,7 +89,7 @@ export function WorkList({ projects, activeSlug = null }: Props) {
     return () => window.removeEventListener("pointermove", unlock);
   }, []);
 
-  // Keep overlay in sync with the URL (back/forward). Skip while FLIP/dissolve is running
+  // Keep overlay in sync with the URL (back/forward). Skip while assemble/dissolve is running
   // so closing does not unmount the panel mid-animation.
   useEffect(() => {
     if (animatingRef.current) return;
@@ -161,56 +165,58 @@ export function WorkList({ projects, activeSlug = null }: Props) {
     hidePreview();
   };
 
-  const playFlipOpen = useCallback(async (slug: string) => {
+  const playAssembleOpen = useCallback(async (slug: string) => {
     const reduce = prefersReducedMotion();
     setListRevealing(false);
-    setOpenSlug(slug);
     hidePreview();
+
+    if (reduce) {
+      setOpenSlug(slug);
+      router.push(`/work/${slug}`, { scroll: false });
+      return;
+    }
+
+    assemblePendingRef.current = true;
+    animatingRef.current = true;
+    setOpenSlug(slug);
     router.push(`/work/${slug}`, { scroll: false });
 
-    if (reduce) return;
-
-    animatingRef.current = true;
+    // Wait for panel mount + layout (targets already opacity:0 via useLayoutEffect).
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => resolve());
       });
     });
 
-    const first = firstRectRef.current;
+    assemblePendingRef.current = false;
+
     const panel = panelRef.current;
-    if (!first || !panel) {
+    const canvas = dissolveCanvasRef.current;
+    if (!panel || !canvas) {
       animatingRef.current = false;
       return;
     }
 
-    const last = panel.getBoundingClientRect();
-    const dx = first.left - last.left;
-    const dy = first.top - last.top;
-    const sx = first.width / last.width;
-    const sy = first.height / last.height;
-
-    panel.style.transformOrigin = "top left";
-    panel.style.transition = "none";
-    panel.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
     if (overlayRef.current) {
-      overlayRef.current.style.opacity = "0";
+      overlayRef.current.style.transition = `opacity ${timings.assembleListFadeMs}ms ease-out`;
+      overlayRef.current.style.opacity = "1";
     }
 
-    requestAnimationFrame(() => {
-      panel.style.transition = `transform ${timings.flipMs}ms ease-out`;
-      panel.style.transform = "translate(0, 0) scale(1, 1)";
-      if (overlayRef.current) {
-        overlayRef.current.style.transition = `opacity ${timings.flipMs}ms ease-out`;
-        overlayRef.current.style.opacity = "1";
-      }
+    const { particles, skippedKeys } = spawnAssembleParticles(panel);
+    // Out-of-view targets (e.g. RESULT below the fold) skip particles.
+    for (const key of skippedKeys) {
+      revealDissolveElement(panel, key);
+    }
+
+    await runAssembleBurst(canvas, particles, {
+      onElementReady: (key) => {
+        revealDissolveElement(panel, key);
+      },
     });
 
-    window.setTimeout(() => {
-      panel.style.transition = "";
-      panel.style.transform = "";
-      animatingRef.current = false;
-    }, timings.flipMs + 20);
+    // Ensure every dissolve target is fully visible after assembly.
+    setDissolveElementsVisible(panel, true);
+    animatingRef.current = false;
   }, [hidePreview, router]);
 
   const closeBreakdown = useCallback(async () => {
@@ -223,6 +229,7 @@ export function WorkList({ projects, activeSlug = null }: Props) {
         panel.style.transform = "";
         panel.style.opacity = "";
         panel.style.filter = "";
+        setDissolveElementsVisible(panel, true);
       }
       if (overlayRef.current) {
         overlayRef.current.style.transition = "";
@@ -271,24 +278,27 @@ export function WorkList({ projects, activeSlug = null }: Props) {
   const onRowClick = (project: Project, event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     if (animatingRef.current) return;
-
-    const row = event.currentTarget;
-    targetRef.current = row;
-
-    if (previewRef.current && preview?.visible) {
-      firstRectRef.current = previewRef.current.getBoundingClientRect();
-    } else {
-      firstRectRef.current = row.getBoundingClientRect();
-    }
-
-    void playFlipOpen(project.slug);
+    void playAssembleOpen(project.slug);
   };
 
   useLayoutEffect(() => {
-    // Direct load / hard navigation to /work/[slug]: show breakdown without FLIP.
-    if (!openSlug || !coldOpenRef.current) return;
-    if (overlayRef.current) overlayRef.current.style.opacity = "1";
-    coldOpenRef.current = false;
+    if (!openSlug) return;
+
+    // Direct load / hard navigation to /work/[slug]: show breakdown with no assembly.
+    if (coldOpenRef.current) {
+      if (overlayRef.current) overlayRef.current.style.opacity = "1";
+      const panel = panelRef.current;
+      if (panel) setDissolveElementsVisible(panel, true);
+      coldOpenRef.current = false;
+      return;
+    }
+
+    // Animated open: hide dissolve targets before paint so we can measure them.
+    if (assemblePendingRef.current) {
+      const panel = panelRef.current;
+      if (panel) setDissolveElementsVisible(panel, false);
+      if (overlayRef.current) overlayRef.current.style.opacity = "0";
+    }
   }, [openSlug]);
 
   const listClassName = [
@@ -327,6 +337,10 @@ export function WorkList({ projects, activeSlug = null }: Props) {
           x={preview.x}
           y={preview.y}
           visible={preview.visible && !openSlug}
+          onOpen={() => {
+            if (animatingRef.current) return;
+            void playAssembleOpen(preview.project.slug);
+          }}
         />
       ) : null}
 

@@ -10,6 +10,7 @@ type Props = {
   y: number;
   visible: boolean;
   cardRef?: Ref<HTMLDivElement>;
+  onOpen?: () => void;
 };
 
 export function WorkPreviewCard({
@@ -18,6 +19,7 @@ export function WorkPreviewCard({
   y,
   visible,
   cardRef,
+  onOpen,
 }: Props) {
   return (
     <div
@@ -27,6 +29,27 @@ export function WorkPreviewCard({
         transform: `translate3d(${x}px, ${y}px, 0)`,
       }}
       aria-hidden={!visible}
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen && visible ? 0 : undefined}
+      onClick={
+        onOpen
+          ? (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onOpen();
+            }
+          : undefined
+      }
+      onKeyDown={
+        onOpen
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen();
+              }
+            }
+          : undefined
+      }
     >
       <div className={styles.thumb} data-slug={project.slug} />
       <p className={styles.fact}>{project.fact}</p>

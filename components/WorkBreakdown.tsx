@@ -69,7 +69,9 @@ export function WorkBreakdown({ project, onClose, panelRef }: Props) {
                 <span className={styles.metricLabel}>{project.metric.label}</span>
               </p>
             ) : (
-              <span data-dissolve="result">{project.result}</span>
+              <span className={styles.resultText} data-dissolve="result">
+                {project.result}
+              </span>
             )}
           </dd>
         </div>

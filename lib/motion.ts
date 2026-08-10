@@ -10,13 +10,16 @@ export function hasFinePointer(): boolean {
 
 export const timings = {
   previewMs: 150,
-  flipMs: 400,
   /** Panel content fade while dissolve burst takes over. */
   dissolveFadeMs: 160,
   /** Delay before work list starts fading back in. */
   dissolveListDelayMs: 120,
   /** Work list fade-in duration after delay (~400ms total from close). */
   dissolveListFadeMs: 280,
+  /** Work list fade-out when opening a breakdown. */
+  assembleListFadeMs: 220,
+  /** Per-element text cross-fade after its particles land. */
+  assembleElementFadeMs: 200,
   staggerMs: 60,
   underlineMs: 180,
   scrambleMs: 150,
