@@ -9,4 +9,5 @@ export const particleFieldConfig = {
   cameraRangeX: 1.1,
   cameraRangeY: 0.7,
   rotationSpeed: 0.0006,
+  introDurationMs: 800,
 } as const;

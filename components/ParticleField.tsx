@@ -62,6 +62,8 @@ export function ParticleField({ fullPage = false, paused = false }: Props) {
       camera.position.z = 6;
 
       geometry = new THREE.BufferGeometry();
+      // Resting positions live in `targets`; geometry starts clustered at origin.
+      const targets = new Float32Array(cfg.count * 3);
       const positions = new Float32Array(cfg.count * 3);
       const colors = new Float32Array(cfg.count * 3);
       const accent = new THREE.Color(cfg.accent);
@@ -69,9 +71,9 @@ export function ParticleField({ fullPage = false, paused = false }: Props) {
 
       for (let i = 0; i < cfg.count; i++) {
         const i3 = i * 3;
-        positions[i3] = (Math.random() - 0.5) * 10;
-        positions[i3 + 1] = (Math.random() - 0.5) * 7;
-        positions[i3 + 2] = (Math.random() - 0.5) * 8;
+        targets[i3] = (Math.random() - 0.5) * 10;
+        targets[i3 + 1] = (Math.random() - 0.5) * 7;
+        targets[i3 + 2] = (Math.random() - 0.5) * 8;
         const color = Math.random() < cfg.accentRatio ? accent : neutral;
         colors[i3] = color.r;
         colors[i3 + 1] = color.g;
@@ -111,18 +113,45 @@ export function ParticleField({ fullPage = false, paused = false }: Props) {
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       window.addEventListener("resize", resize);
 
+      const startTime = performance.now();
+      let introDone = false;
+
       const tick = () => {
         if (disposed) return;
         raf = requestAnimationFrame(tick);
-        if (pausedRef.current || !renderer || !scene || !camera || !points) {
+        if (
+          pausedRef.current ||
+          !renderer ||
+          !scene ||
+          !camera ||
+          !points ||
+          !geometry
+        ) {
           return;
         }
+        // Parallax + drift run throughout the intro — no handoff seam after assembly.
         pointer.x += (target.x - pointer.x) * cfg.cameraLerp;
         pointer.y += (target.y - pointer.y) * cfg.cameraLerp;
         camera.position.x = pointer.x;
         camera.position.y = pointer.y;
         camera.lookAt(0, 0, 0);
         points.rotation.y += cfg.rotationSpeed;
+
+        if (!introDone) {
+          const t = Math.min(
+            1,
+            (performance.now() - startTime) / cfg.introDurationMs,
+          );
+          const e = 1 - Math.pow(1 - t, 3);
+          for (let i = 0; i < targets.length; i++) {
+            positions[i] = targets[i] * e;
+          }
+          geometry.attributes.position.needsUpdate = true;
+          if (t === 1) {
+            introDone = true;
+          }
+        }
+
         renderer.render(scene, camera);
       };
       tick();
