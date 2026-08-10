@@ -28,33 +28,46 @@ export function WorkBreakdown({ project, onClose, panelRef }: Props) {
         {project.name}
       </h3>
 
+      {project.repoUrl ? (
+        <p className={styles.repo}>
+          <a
+            href={project.repoUrl}
+            className={styles.repoLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+        </p>
+      ) : null}
+
       <dl className={styles.facts}>
-        <div>
-          <dt>Role</dt>
-          <dd>{project.role}</dd>
-        </div>
         <div>
           <dt>Stack</dt>
           <dd>{project.stack.join(" · ")}</dd>
         </div>
         <div>
+          <dt>Description</dt>
+          <dd className={styles.description}>{project.description}</dd>
+        </div>
+        <div>
           <dt>Result</dt>
-          <dd>{project.result}</dd>
+          <dd>
+            {project.metric ? (
+              <p className={styles.metric} data-metric>
+                <span className={styles.metricValue}>
+                  {project.metric.prefix ?? ""}
+                  <CountUp value={project.metric.value} />
+                  {project.metric.suffix ?? ""}
+                </span>
+                <span className={styles.metricLabel}>{project.metric.label}</span>
+              </p>
+            ) : (
+              project.result
+            )}
+          </dd>
         </div>
       </dl>
-
-      {project.metric ? (
-        <p className={styles.metric} data-metric>
-          <span className={styles.metricValue}>
-            {project.metric.prefix ?? ""}
-            <CountUp value={project.metric.value} />
-            {project.metric.suffix ?? ""}
-          </span>
-          <span className={styles.metricLabel}>{project.metric.label}</span>
-        </p>
-      ) : null}
-
-      <p className={styles.writeup}>{project.writeup}</p>
     </article>
   );
 }

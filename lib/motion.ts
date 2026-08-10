@@ -11,6 +11,9 @@ export function hasFinePointer(): boolean {
 export const timings = {
   previewMs: 150,
   flipMs: 400,
+  /** CRT-style close: flatten to a line, then pinch left/right to center. */
+  tvOffFlattenMs: 160,
+  tvOffPinchMs: 220,
   staggerMs: 60,
   underlineMs: 180,
   scrambleMs: 150,

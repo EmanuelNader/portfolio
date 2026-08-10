@@ -45,6 +45,25 @@
   line-height: 1.15;
 }
 
+.repo {
+  margin-top: 12px;
+}
+
+.repoLink {
+  color: var(--accent);
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0 1px;
+  transition: background-size 180ms ease-out;
+}
+
+.repoLink:hover,
+.repoLink:focus-visible {
+  background-size: 100% 1px;
+}
+
 .facts {
   display: grid;
   gap: 14px;
@@ -65,11 +84,18 @@
   line-height: 1.5;
 }
 
+.description {
+  max-width: 46ch;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
 .metric {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: 28px;
+  margin: 0;
 }
 
 .metricValue {
@@ -84,12 +110,4 @@
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-dim);
-}
-
-.writeup {
-  margin-top: 24px;
-  max-width: 46ch;
-  font-size: 17px;
-  line-height: 1.65;
-  color: var(--text);
 }

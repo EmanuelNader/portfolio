@@ -184,36 +184,57 @@ export function WorkList({ projects, activeSlug = null }: Props) {
   const closeBreakdown = useCallback(async () => {
     const reduce = prefersReducedMotion();
     const panel = panelRef.current;
-    const target = targetRef.current;
 
     const finishClose = () => {
+      if (panel) {
+        panel.style.transition = "";
+        panel.style.transform = "";
+        panel.style.opacity = "";
+        panel.style.filter = "";
+      }
+      if (overlayRef.current) {
+        overlayRef.current.style.transition = "";
+        overlayRef.current.style.opacity = "";
+      }
       setOpenSlug(null);
       animatingRef.current = false;
       router.push("/", { scroll: false });
     };
 
-    if (reduce || !panel || !target) {
+    if (reduce || !panel) {
       finishClose();
       return;
     }
 
+    // TV shut-off: flatten to a horizontal line, then pinch left/right into the center.
     animatingRef.current = true;
-    const first = panel.getBoundingClientRect();
-    const last = target.getBoundingClientRect();
-    const dx = last.left - first.left;
-    const dy = last.top - first.top;
-    const sx = last.width / first.width;
-    const sy = last.height / first.height;
+    const flatten = timings.tvOffFlattenMs;
+    const pinch = timings.tvOffPinchMs;
 
-    panel.style.transformOrigin = "top left";
-    panel.style.transition = `transform ${timings.flipMs}ms ease-out`;
-    panel.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+    panel.style.transformOrigin = "center center";
+    panel.style.transition = `transform ${flatten}ms cubic-bezier(0.55, 0.06, 0.68, 0.19)`;
+    panel.style.transform = "scale(1, 0.04)";
     if (overlayRef.current) {
-      overlayRef.current.style.transition = `opacity ${timings.flipMs}ms ease-out`;
+      overlayRef.current.style.transition = `opacity ${flatten + pinch}ms ease-out`;
       overlayRef.current.style.opacity = "0";
     }
 
-    window.setTimeout(finishClose, timings.flipMs);
+    window.setTimeout(() => {
+      if (!panelRef.current) {
+        finishClose();
+        return;
+      }
+      panel.style.transition = [
+        `transform ${pinch}ms cubic-bezier(0.55, 0.06, 0.68, 0.19)`,
+        `opacity ${pinch}ms ease-in`,
+        `filter ${pinch}ms ease-in`,
+      ].join(", ");
+      panel.style.transform = "scale(0, 0.04)";
+      panel.style.opacity = "0";
+      panel.style.filter = "brightness(1.8)";
+    }, flatten);
+
+    window.setTimeout(finishClose, flatten + pinch + 20);
   }, [router]);
 
   const onRowClick = (project: Project, event: React.MouseEvent<HTMLAnchorElement>) => {
