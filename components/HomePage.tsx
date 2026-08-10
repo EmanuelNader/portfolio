@@ -1,6 +1,7 @@
 import { experience } from "@/lib/experience";
 import { projects } from "@/lib/projects";
 import { site } from "@/lib/site";
+import { ParticleFieldHost } from "./ParticleFieldHost";
 import { ScrambleLink } from "./ScrambleLink";
 import { StaggerIn } from "./StaggerIn";
 import { WorkList } from "./WorkList";
@@ -13,6 +14,8 @@ export function HomePage({ initialWorkSlug = null }: Props) {
   return (
     <main className="page">
       <section className="section hero" aria-label="Introduction">
+        <ParticleFieldHost />
+        <div className="hero-content">
         <StaggerIn immediate delayMs={0}>
           <h1 className="hero-name">{site.name}</h1>
         </StaggerIn>
@@ -53,6 +56,7 @@ export function HomePage({ initialWorkSlug = null }: Props) {
             </ScrambleLink>
           </p>
         </StaggerIn>
+        </div>
       </section>
 
       <section className="section" aria-labelledby="work-heading">
