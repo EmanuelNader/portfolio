@@ -87,33 +87,137 @@ a {
   outline-offset: 2px;
 }
 
-.smoke {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 80px 24px 120px;
+ul {
+  list-style: none;
 }
 
-.smoke h1 {
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 96px 24px 160px;
+}
+
+.section + .section {
+  margin-top: var(--section-gap);
+}
+
+.section-label {
+  margin-bottom: var(--entry-gap);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.meta {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.hero-name {
   font-size: 56px;
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
 
-.smoke .meta {
+.hero .meta {
   margin-top: 12px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-dim);
 }
 
-.smoke .body {
+.hero-body {
   margin-top: 32px;
   max-width: 42ch;
 }
 
+.hero-links {
+  margin-top: 28px;
+  font-size: 16px;
+}
+
+.hero-sep {
+  margin: 0 0.55em;
+  color: var(--text-dim);
+}
+
+.work-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.work-row {
+  border-top: 1px solid var(--rule);
+}
+
+.work-row:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+.work-name {
+  padding: 22px 0;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.experience-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--entry-gap);
+}
+
+.experience-company {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.experience-meta {
+  margin-top: 8px;
+}
+
+.experience-lines {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 52ch;
+}
+
+.contact-lead {
+  max-width: 36ch;
+}
+
+.contact-email {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
 @media (max-width: 640px) {
-  .smoke h1 {
+  .page {
+    padding: 72px 20px 120px;
+  }
+
+  .hero-name {
     font-size: 34px;
+  }
+
+  .work-name,
+  .experience-company {
+    font-size: 22px;
+  }
+
+  .contact-email {
+    font-size: 26px;
   }
 }
