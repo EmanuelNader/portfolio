@@ -1,5 +1,4 @@
-import { HomePage } from "@/components/HomePage";
-
 export default function Home() {
-  return <HomePage />;
+  // UI lives in PortfolioShell (layout) so / ↔ /work/[slug] does not remount it.
+  return null;
 }

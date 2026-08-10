@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { HomePage } from "@/components/HomePage";
 import { getProject, projects } from "@/lib/projects";
 
 type Props = {
@@ -24,5 +23,6 @@ export default async function WorkPage({ params }: Props) {
   const { slug } = await params;
   const project = getProject(slug);
   if (!project) notFound();
-  return <HomePage initialWorkSlug={slug} />;
+  // UI lives in PortfolioShell; this route exists for URLs + metadata.
+  return null;
 }

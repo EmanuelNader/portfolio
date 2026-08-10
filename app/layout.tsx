@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PortfolioShell } from "@/components/PortfolioShell";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -14,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <PortfolioShell>{children}</PortfolioShell>
+      </body>
     </html>
   );
 }

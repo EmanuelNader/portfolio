@@ -4,7 +4,7 @@ export const site = {
   school: "University of California - San Diego",
   metaLine: "Mathematics - Computer Science · University of California - San Diego",
   tagline:
-    "I build across mobile, embedded, and agentic systems — right now that means fleet tooling at Tesla and a handful of things I ship for fun.",
+    "I love building tons of stuff: mobile, embedded, agentic systems, and more. Ask me about my unfinished side projects sometime :D",
   email: "EmanuelSNader@gmail.com",
   links: {
     github: "https://github.com/EmanuelNader",

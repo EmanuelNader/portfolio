@@ -17,7 +17,8 @@ import styles from "./WorkList.module.css";
 
 type Props = {
   projects: Project[];
-  initialSlug?: string | null;
+  /** Synced from the URL by PortfolioShell (layout-stable). */
+  activeSlug?: string | null;
 };
 
 type PreviewState = {
@@ -39,9 +40,9 @@ function clampPreview(x: number, y: number) {
   };
 }
 
-export function WorkList({ projects, initialSlug = null }: Props) {
+export function WorkList({ projects, activeSlug = null }: Props) {
   const router = useRouter();
-  const [openSlug, setOpenSlug] = useState<string | null>(initialSlug);
+  const [openSlug, setOpenSlug] = useState<string | null>(activeSlug);
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [finePointer, setFinePointer] = useState(false);
 
@@ -53,6 +54,7 @@ export function WorkList({ projects, initialSlug = null }: Props) {
   const targetRef = useRef<HTMLAnchorElement | null>(null);
   const cursorRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef<number | null>(null);
+  const coldOpenRef = useRef(Boolean(activeSlug));
 
   const openProject = projects.find((p) => p.slug === openSlug) ?? null;
 
@@ -64,9 +66,12 @@ export function WorkList({ projects, initialSlug = null }: Props) {
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
+  // Keep overlay in sync with the URL (back/forward). Skip while FLIP is running
+  // so closing does not unmount the panel mid-animation.
   useEffect(() => {
-    setOpenSlug(initialSlug ?? null);
-  }, [initialSlug]);
+    if (animatingRef.current) return;
+    setOpenSlug(activeSlug ?? null);
+  }, [activeSlug]);
 
   useEffect(() => {
     if (!openSlug) return;
@@ -181,10 +186,14 @@ export function WorkList({ projects, initialSlug = null }: Props) {
     const panel = panelRef.current;
     const target = targetRef.current;
 
-    router.push("/", { scroll: false });
+    const finishClose = () => {
+      setOpenSlug(null);
+      animatingRef.current = false;
+      router.push("/", { scroll: false });
+    };
 
     if (reduce || !panel || !target) {
-      setOpenSlug(null);
+      finishClose();
       return;
     }
 
@@ -204,10 +213,7 @@ export function WorkList({ projects, initialSlug = null }: Props) {
       overlayRef.current.style.opacity = "0";
     }
 
-    window.setTimeout(() => {
-      setOpenSlug(null);
-      animatingRef.current = false;
-    }, timings.flipMs);
+    window.setTimeout(finishClose, timings.flipMs);
   }, [router]);
 
   const onRowClick = (project: Project, event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -227,9 +233,11 @@ export function WorkList({ projects, initialSlug = null }: Props) {
   };
 
   useLayoutEffect(() => {
-    if (!openSlug || !initialSlug) return;
+    // Direct load / hard navigation to /work/[slug]: show breakdown without FLIP.
+    if (!openSlug || !coldOpenRef.current) return;
     if (overlayRef.current) overlayRef.current.style.opacity = "1";
-  }, [initialSlug, openSlug]);
+    coldOpenRef.current = false;
+  }, [openSlug]);
 
   return (
     <>
